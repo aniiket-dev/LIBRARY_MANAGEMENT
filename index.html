@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lumina | Advanced Library Management</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #00cec9;
+            --danger: #ff7675;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        }
+
+        /* Search & Filter Bar */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 1rem;
+        }
+
+        /* Table Design */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        th {
+            background: var(--primary);
+            padding: 15px;
+            text-align: left;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        th:first-child { border-radius: 10px 0 0 10px; }
+        th:last-child { border-radius: 0 10px 10px 0; }
+
+        tr { transition: 0.3s; }
+        td {
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        td:first-child { border-radius: 10px 0 0 10px; }
+        td:last-child { border-radius: 0 10px 10px 0; }
+
+        /* Status & Action Buttons */
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .available { background: rgba(0, 206, 201, 0.2); color: var(--accent); }
+        
+        .delete-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .delete-btn:hover { background: #d63031; transform: scale(1.1); }
+
+        .add-main-btn {
+            background: var(--primary);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
+        }
+
+        /* Modal styling as before */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #1e293b; padding: 30px; border-radius: 20px; width: 400px; border: 1px solid var(--secondary); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Lumina Inventory Control</h2>
+        <button class="add-main-btn" onclick="openModal()">+ Add New Book</button>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by Author or Title..." onkeyup="filterBooks()">
+    </div>
+
+    <table id="bookTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>#101</td>
+                <td>Clean Code</td>
+                <td>Robert C. Martin</td>
+                <td><span class="badge available">Available</span></td>
+                <td><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
+            </tr>
+            <tr>
+                <td>#102</td>
+                <td>The Pragmatic Programmer</td>
+                <td>Andy Hunt</td>
+                <td><span class="badge available">Available</span></td>
+                <td><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="modal" id="addModal">
+    <div class="modal-content">
+        <h3>New Entry Details</h3>
+        <input type="text" id="newId" placeholder="Book ID" style="width:100%; margin-bottom:10px; padding:10px; border-radius:5px; background: #0f172a; color:white; border:1px solid #334155;">
+        <input type="text" id="newTitle" placeholder="Book Title" style="width:100%; margin-bottom:10px; padding:10px; border-radius:5px; background: #0f172a; color:white; border:1px solid #334155;">
+        <input type="text" id="newAuthor" placeholder="Author Name" style="width:100%; margin-bottom:10px; padding:10px; border-radius:5px; background: #0f172a; color:white; border:1px solid #334155;">
+        <div style="display:flex; gap:10px;">
+            <button class="add-main-btn" style="flex:1" onclick="addBook()">Save</button>
+            <button onclick="closeModal()" style="flex:1; background:transparent; color:white; border:1px solid #475569; border-radius:12px; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal() { document.getElementById('addModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+
+    // 1. ADD BOOK FUNCTION
+    function addBook() {
+        const id = document.getElementById('newId').value;
+        const title = document.getElementById('newTitle').value;
+        const author = document.getElementById('newAuthor').value;
+
+        if(!id || !title || !author) return alert("Fill all fields");
+
+        const table = document.getElementById('bookTable').getElementsByTagName('tbody')[0];
+        const row = table.insertRow();
+        row.innerHTML = `
+            <td>${id}</td>
+            <td>${title}</td>
+            <td>${author}</td>
+            <td><span class="badge available">Available</span></td>
+            <td><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
+        `;
+        closeModal();
+    }
+
+    // 2. DELETE FUNCTION
+    function deleteRow(btn) {
+        if(confirm("Are you sure you want to remove this book?")) {
+            const row = btn.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+    }
+
+    // 3. FILTER/SELECT FUNCTION (Search by Author)
+    function filterBooks() {
+        const input = document.getElementById("searchInput").value.toUpperCase();
+        const rows = document.getElementById("bookTable").getElementsByTagName("tr");
+
+        for (let i = 1; i < rows.length; i++) {
+            const titleCol = rows[i].getElementsByTagName("td")[1];
+            const authorCol = rows[i].getElementsByTagName("td")[2];
+            if (titleCol || authorCol) {
+                const textValue = (titleCol.textContent || titleCol.innerText) + 
+                                  (authorCol.textContent || authorCol.innerText);
+                if (textValue.toUpperCase().indexOf(input) > -1) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
